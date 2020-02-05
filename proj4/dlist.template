@@ -1,0 +1,187 @@
+/*
+ *  dlist template file
+ *  CS2401
+ *  Austin McKibben
+ *
+ *  Contains the implimentation for
+ *  dlist
+ */
+
+#include <iostream>
+#include <fstream>
+
+template <class T>
+dlist<T>::dlist(const dlist<T> &other) {
+    if(other.head == NULL) {
+        head = tail = NULL;
+    } else {
+        tail = new Dnode<T>(other.head->data());
+        head = tail;
+        Dnode<T> *ptr = other.head->next();
+        sizel++;
+        while(ptr != NULL) {
+            tail->set_next(new Dnode<T>(ptr->data(), NULL, tail));
+            tail = tail->next();
+            ptr = ptr->next();
+            sizel++;
+        }
+    }
+}
+
+template <class T>
+dlist<T>::~dlist() {
+    if(head == tail) {
+        delete head;
+    } else {
+        Dnode<T> *cur = head;
+        
+        while(cur->next() != NULL) {
+            head = cur->next();
+            delete cur;
+            cur = head;
+        }
+        delete head;
+    }
+    printf("copy destroyed\n");
+}
+
+template <class T>
+dlist<T>& dlist<T>::operator =(const dlist& other) {
+    if(this == &other) {
+        return *this;
+    }
+
+    sizel = other.sizel;
+
+    Dnode<T> *cur;
+    while(head != NULL) {
+        cur = head;
+        head = head->next();
+        delete cur;
+    }
+
+    if(other.head != NULL) {
+        head = new Dnode<T>(other.head->data());
+        cur = head->next();
+        Dnode<T> *ocur = other.head->next();
+        if(ocur != NULL) {
+            head->set_next(other.head->next());
+        }
+        while(ocur != NULL) {
+            cur = new Dnode<T>(ocur->data(), ocur->next(), ocur->previous());
+            cur = cur->next();
+            ocur = ocur->next();
+        }
+    }
+}
+
+template <class T>
+void dlist<T>::rear_insert(const T& item) {
+    if(tail == NULL) {
+        tail = new Dnode<T>(item);
+        head = tail;
+    } else {
+        tail->set_next(new Dnode<T>(item, NULL, tail));
+        tail = tail->next();
+                
+    }
+    ++sizel;
+}
+
+template <class T>
+void dlist<T>::show() {
+    if (head != NULL) {
+        Dnode<T> *cur = head;
+        std::cout << cur->data() << std::endl;
+        while(cur->next() != NULL) {
+            cur = cur->next();
+            std::cout << cur->data() << std::endl;
+        }                
+    }
+}
+
+template <class T>
+void dlist<T>::reverse_show() {
+    if(tail != NULL) {
+        Dnode<T> *cur = tail;
+        std::cout << cur->data() << std::endl;
+        while(cur->previous() != NULL) {
+            cur = cur->previous();
+            std::cout << cur->data() << std::endl;
+        }
+    }
+}
+
+template <class T>
+void dlist<T>::front_insert(const T& item) {
+    if(head == NULL) {
+        head = new Dnode<T>(item);
+        tail = head;
+    } else {
+        head->set_previous(new Dnode<T>(item, head));
+        head = head->previous();
+    }
+    ++sizel;
+}
+
+template <class T>
+void dlist<T>::rear_remove() {
+    if(tail != NULL) {
+        if(head == tail) {
+            delete tail;
+        } else {
+            Dnode<T> *ptr = tail;
+            tail = tail->previous();
+            tail->set_next(NULL);
+            delete ptr;
+        }
+    }
+    --sizel;
+}
+
+template <class T>
+void dlist<T>::front_remove() {
+    if(tail != NULL) {
+        if(head == tail) {
+            delete tail;
+        } else {
+            Dnode<T> *ptr = head;
+            head = head->next();
+            head->set_previous(NULL);
+            delete ptr;
+        }
+    }
+    --sizel;
+}
+
+template <class T>
+void dlist<T>::insert_after(iterator it, T item) {
+    if(it.current != NULL) {
+        if(it.current->next() == NULL){
+            it.current->set_next(new Dnode<T>(item, NULL, it.current));
+        } else {
+            it.current->next()->set_previous(new Dnode<T>(item, it.current->next(), it.current));
+            it.current->set_next(it.current->next()->previous());
+        }
+    }
+    sizel++;
+}
+
+template <class T>
+void dlist<T>::insert_before(iterator it, T item) {
+    if(it.current != NULL) {
+        if(it.current->next() == NULL) {
+            it.current->set_next(new Dnode<T>(item, NULL, it.current));
+        } else {
+            it.current->previous()->set_next(new Dnode<T>(item, it.current, it.current->previous()));
+            it.current->set_previous(it.current->previous()->next());
+        }
+    }
+}
+
+template <class T>
+void dlist<T>::remove(iterator it) {
+    it.current->previous()->set_next(it.current->next());
+    it.current->next()->set_previous(it.current->previous());
+    delete it.current;
+}
